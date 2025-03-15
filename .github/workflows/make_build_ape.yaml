@@ -12,13 +12,13 @@ on:
 
 jobs:
   make:
-    name: Make NDK APE
+    name: Make NDK MUSL(aarch64)
     runs-on: ubuntu-latest
     steps:
       - name: Get NDK and LLVM
         run: |
           curl -LkSs https://dl.google.com/android/repository/android-ndk-r${{inputs.ndk_version}}-linux.zip >ndk.zip && unzip -q ndk.zip
-          curl -LkSs https://github.com/zongou/build/releases/download/llvm/clang+clang-tools-extra+lld-${{inputs.llvm_version}}-ape.tar.xz | xz -d | tar -x
+          curl -LkSs https://github.com/zongou/build/releases/download/llvm/clang+clang-tools-extra+lld-${{inputs.llvm_version}}-aarch64-linux-musl.tar.xz | xz -d | tar -x
 
       - name: Make NDK APE
         run: |
