@@ -1,5 +1,5 @@
-name: Make NDK APE
-run-name: Make NDK-r${{inputs.ndk_version}} with llvm-${{inputs.llvm_version}}-ape
+name: Make NDK
+run-name: Make NDK-r${{inputs.ndk_version}} with llvm-${{inputs.llvm_version}}-aarch64-musl
 on:
   workflow_dispatch:
     inputs:
@@ -20,10 +20,10 @@ jobs:
           curl -LkSs https://dl.google.com/android/repository/android-ndk-r${{inputs.ndk_version}}-linux.zip >ndk.zip && unzip -q ndk.zip
           curl -LkSs https://github.com/zongou/build/releases/download/llvm/clang+clang-tools-extra+lld-${{inputs.llvm_version}}-aarch64-linux-musl.tar.xz | xz -d | tar -x
 
-      - name: Make NDK APE
+      - name: Make NDK
         run: |
           NDK="${PWD}/android-ndk-r${{inputs.ndk_version}}"
-          HOST_TOOLCHAIN="${PWD}/clang+clang-tools-extra+lld-${{inputs.llvm_version}}-ape"
+          HOST_TOOLCHAIN="${PWD}/clang+clang-tools-extra+lld-${{inputs.llvm_version}}-aarch64-linux-musl"
           NDK_TOOLCHAIN="${NDK}/toolchains/llvm/prebuilt/linux-x86_64"
 
           find "${NDK_TOOLCHAIN}/bin" -type f | while IFS= read -r file; do
@@ -50,16 +50,16 @@ jobs:
           mkdir -p "${NDK_TOOLCHAIN}/python3/bin"
           curl -LkSs https://cosmo.zip/pub/cosmos/bin/python >"${NDK_TOOLCHAIN}/python3/bin/python3" && chmod +x "${NDK_TOOLCHAIN}/python3/bin/python3"
 
-          mv android-ndk-r${{inputs.ndk_version}} android-ndk-r${{inputs.ndk_version}}-ape
+          mv android-ndk-r${{inputs.ndk_version}} android-ndk-r${{inputs.ndk_version}}-aarch64-linux-musl
 
       - name: Archive
         run: |
-          tar -c android-ndk-r${{inputs.ndk_version}}-ape >android-ndk-r${{inputs.ndk_version}}-ape.tar
+          tar -c android-ndk-r${{inputs.ndk_version}}-aarch64-linux-musl >android-ndk-r${{inputs.ndk_version}}-aarch64-linux-musl.tar
 
       - uses: actions/upload-artifact@v4
         with:
-          name: android-ndk-r${{inputs.ndk_version}}-ape.tar
-          path: android-ndk-r${{inputs.ndk_version}}-ape.tar
+          name: android-ndk-r${{inputs.ndk_version}}-aarch64-linux-musl.tar
+          path: android-ndk-r${{inputs.ndk_version}}-aarch64-linux-musl.tar
 
   release:
     needs: make
@@ -76,13 +76,13 @@ jobs:
       
     - name: Compress
       run: |
-        xz -T0 android-ndk-r${{inputs.ndk_version}}-ape.tar
+        xz -T0 android-ndk-r${{inputs.ndk_version}}-aarch64-linux-musl.tar
 
     - name: Release
       uses: ncipollo/release-action@v1.15.0
       with:
         tag: "ndk"
-        artifacts: android-ndk-r${{inputs.ndk_version}}-ape.tar.xz
+        artifacts: android-ndk-r${{inputs.ndk_version}}-aarch64-linux-musl.tar.xz
         allowUpdates: true
         replacesArtifacts: true
         body: |
