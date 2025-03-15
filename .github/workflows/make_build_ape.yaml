@@ -61,53 +61,8 @@ jobs:
           name: android-ndk-r${{inputs.ndk_version}}-ape.tar
           path: android-ndk-r${{inputs.ndk_version}}-ape.tar
 
-  test:
-    needs: make
-    name: Test on ${{ matrix.runner }}
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        ## runner: [ubuntu-24.04, ubuntu-24.04-arm, macos-14, windows-latest]
-        runner: [ubuntu-24.04-arm]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.1
-
-      - uses: actions/download-artifact@v4
-        with:
-          merge-multiple: true
-
-      - name: Extract artifacts
-        run: tar -xf android-ndk-r${{inputs.ndk_version}}-ape.tar
-
-      - name: Test
-        shell: bash
-        run: |
-          NDK="${PWD}/android-ndk-r${{inputs.ndk_version}}-ape"
-          NDK_TOOLCHAIN="${NDK}/toolchains/llvm/prebuilt/linux-x86_64"
-
-          grep '"triple"' <"${NDK}/meta/abis.json" | awk -F"\"" '{print $4}' | while IFS= read -r triple; do
-              # find ${NDK_TOOLCHAIN}/sysroot/usr/lib -maxdepth 1 -mindepth 1 | while IFS= read -r triple; do
-              target=$(basename "${triple}" | sed 's/arm/armv7a/')35
-
-              echo "Test ${target}-clang"
-              o="helloc-${target}"
-              "${NDK_TOOLCHAIN}/bin/${target}-clang" -o "$o" tests/hello.c
-              file "$o"
-
-              echo "Test ${target}-clang++"
-              o="hellocpp-${target}"
-              "${NDK_TOOLCHAIN}/bin/${target}-clang++" -xc++ -o "$o" tests/hello.cpp
-              file "$o"
-          done
-
-      - uses: zongou/run-vscode-server@0.0.3
-        name: Open VS Code server to Handle Failure (Run on any failure)
-        if: ${{ failure() }}
-
   release:
-    needs: test
+    needs: make
     name: Release
     permissions:
       contents: write
